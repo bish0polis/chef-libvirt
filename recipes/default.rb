@@ -25,9 +25,6 @@ node["libvirt"]["packages"].each do |name|
   end
 end
 
-include_recipe "libvirt::daemon"
-include_recipe "libvirt::guests"
-
 node["libvirt"]["networks"].each do |name, data|
   (data["action"] ? data["action"].map(&:to_sym) : [:define]).each do |current_action|
     libvirt_network name do
