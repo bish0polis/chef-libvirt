@@ -1,0 +1,77 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+  require_chef_omnibus: true
+
+platforms:
+  - name: ubuntu-14.04
+
+suites:
+  - name: default
+    # driver:
+    #   network:
+    #  - ["private_network", {ip: "192.168.33.10"}]
+    run_list:
+     - recipe[apt]
+     - recipe[libvirt::default]
+     - recipe[libvirt::daemon]
+    #data_bags_path: "test/integration/data_bags"
+    attributes: {
+      "apt": {
+        "compile_time_update": true
+      },
+      "libvirt": {
+        "networks": {
+          "example": {
+            "action": ["define", "start", "autoboot"],
+            "mac": "52:54:00:AB:B1:77",
+            "bridge": "virbr1",
+            "ip": "192.168.124.1",
+            "netmask": "255.255.255.0",
+            "dhcp_enable": true,
+            "dhcp_hosts": [
+              {
+                "mac": "52:54:00:77:77:70",
+                "name": "host1.example.com",
+                "ip": "192.168.124.10"
+              }
+            ]
+          }
+        },
+      "nodes": {
+        "host1": {
+          "action": [ "define" ],
+          "memory": 512,
+          "cpus": 1,
+          "vnc": 5900,
+          "disks": [
+            {
+              "type": "file",
+              "download": "http://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img",
+              "source": "/var/lib/libvirt/images/host1.qcow2",
+              "target": "vda"
+            }
+          ],
+          "interfaces": [
+            {
+              "type": "network",
+              "source": "example",
+              "mac": "52:54:00:77:77:70"
+            }
+          ]
+        }
+      },
+      "pools": {
+       "cloud": {
+          "action": ["define", "start", "autoboot"],
+          "type": "logical",
+          "target": "/dev/sda2",
+          "volume": "system"
+        }
+
+      }
+  }
+}
