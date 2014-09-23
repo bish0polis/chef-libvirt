@@ -22,6 +22,7 @@ default["libvirt"]["packages"] = value_for_platform_family(
     libvirt-bin
     libvirt-dev
     lvm2
+    qemu-kvm
   ),
   "ubuntu" => %w(
     libvirt-bin
