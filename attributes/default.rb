@@ -39,7 +39,7 @@ default["libvirt"]["packages"] = value_for_platform_family(
     dnsmasq
     ebtables
   ),
-  "centos" => %w(
+  "rhel" => %w(
     libvirt
     libvirt-devel
     lvm2

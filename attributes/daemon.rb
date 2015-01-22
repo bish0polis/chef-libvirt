@@ -21,14 +21,22 @@ default["libvirt"]["daemon"]["service_name"] = value_for_platform_family(
   "debian" => "libvirt-bin",
   "ubuntu" => "libvirt-bin",
   "suse" => "libvirtd",
-  "centos" => "libvirtd"
+  "rhel" => "libvirtd"
 )
 default["libvirt"]["daemon"]["sysconfig_file"] = value_for_platform_family(
   "debian" => "/etc/default/libvirt-bin",
   "ubuntu" => "/etc/default/libvirt-bin",
   "suse" => "/etc/sysconfig/libvirtd",
-  "centos" => "/etc/sysconfig/libvirtd"
+  "rhel" => "/etc/sysconfig/libvirtd"
 )
+
+default["libvirt"]["daemon"]["group"] = value_for_platform_family(
+  "debian" => "libvirtd",
+  "ubuntu" => "libvirtd",
+  "suse" => "libvirtd",
+  "rhel" => "root"
+)
+
 default["libvirt"]["daemon"]["config_file"] = "/etc/libvirt/libvirtd.conf"
 default["libvirt"]["daemon"]["libvirt_file"] = "/etc/libvirt/libvirt.conf"
 default["libvirt"]["daemon"]["uri_aliases"] = []
