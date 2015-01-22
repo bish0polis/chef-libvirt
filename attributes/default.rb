@@ -38,7 +38,17 @@ default["libvirt"]["packages"] = value_for_platform_family(
     bridge-utils
     dnsmasq
     ebtables
+  ),
+  "centos" => %w(
+    libvirt
+    libvirt-devel
+    lvm2
+    bridge-utils
+    ebtables
+    ipxe-roms-qemu
+    virt-install
   )
+
 )
 
 default["libvirt"]["networks"] = {}
