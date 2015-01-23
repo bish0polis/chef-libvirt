@@ -18,6 +18,7 @@
 #
 
 require "chef/dsl/include_recipe"
+require 'chef/resource'
 include Chef::DSL::IncludeRecipe
 
 action :create do
@@ -238,7 +239,7 @@ action :noboot do
   end
 end
 
-protected
+#protected
 
 def create_xml_path
   @create_xml_path ||= begin

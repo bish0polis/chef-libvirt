@@ -37,6 +37,13 @@ default["libvirt"]["daemon"]["group"] = value_for_platform_family(
   "rhel" => "root"
 )
 
+default["libvirt"]["daemon"]["emulator"] = value_for_platform_family(
+  "debian" => "/usr/bin/qemu-kvm",
+  "ubuntu" => "/usr/bin/qemu-kvm",
+  "suse" => "/usr/bin/qemu-kvm",
+  "rhel" => "/usr/libexec/qemu-kvm"
+)
+
 default["libvirt"]["daemon"]["config_file"] = "/etc/libvirt/libvirtd.conf"
 default["libvirt"]["daemon"]["libvirt_file"] = "/etc/libvirt/libvirt.conf"
 default["libvirt"]["daemon"]["uri_aliases"] = []

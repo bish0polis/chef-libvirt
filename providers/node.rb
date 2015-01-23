@@ -176,7 +176,7 @@ action :noboot do
   end
 end
 
-protected
+#protected
 
 def create_xml_path
   @create_xml_path ||= begin

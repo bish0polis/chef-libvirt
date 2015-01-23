@@ -25,7 +25,7 @@
   <on_crash>restart</on_crash>
 
   <devices>
-    <emulator>/usr/bin/qemu-kvm</emulator>
+    <emulator><%= @emulator %></emulator>
     <% @disks.each_with_index do |disk, index| %>
       <disk type='<%= disk["type"] %>' device='disk'>
         <driver name='qemu' type='<%= disk["driver_type"] %>' cache='none'/>
