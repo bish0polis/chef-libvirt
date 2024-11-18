@@ -17,17 +17,226 @@
 # limitations under the License.
 #
 
-actions :create, :define, :destroy, :start, :undefine, :autoboot, :noboot
+#actions :create, :define, :destroy, :start, :undefine, :autoboot, :noboot
+provides	:network
 
-attribute :name, :kind_of => String, :name_attribute => true
-attribute :uuid, :kind_of => String, :default => nil
-attribute :mac, :kind_of => String, :default => nil
-attribute :bridge, :kind_of => String, :default => "virbr1"
-attribute :ip, :kind_of => String, :default => "192.168.0.1"
-attribute :netmask, :kind_of => String, :default => "255.255.0.0"
-attribute :dhcp_enable, :kind_of => [TrueClass, FalseClass], :default => false
-attribute :dhcp_start, :kind_of => String, :default => nil
-attribute :dhcp_end, :kind_of => String, :default => nil
-attribute :dhcp_hosts, :kind_of => Array, :default => []
+property :name, String, name_property: true
+property :uuid, String, :default => nil
+property :mac, String, :default => nil
+property :bridge, String, :default => "virbr1"
+property :ip, String, :default => "192.168.0.1"
+property :netmask, String, :default => "255.255.0.0"
+property :dhcp_enable, [TrueClass, FalseClass], :default => false
+property :dhcp_start, String, :default => nil
+property :dhcp_end, String, :default => nil
+property :dhcp_hosts, Array, :default => []
 
-default_action :create
+#default_action :create
+
+action :create do
+  template create_xml_path do
+    owner "root"
+    group "root"
+    mode 0640
+
+    cookbook "libvirt"
+    source "network.xml.erb"
+
+    variables(
+      "name" => new_resource.name,
+      "uuid" => new_resource.uuid,
+      "mac" => new_resource.mac,
+      "bridge" => new_resource.bridge,
+      "ip" => new_resource.ip,
+      "netmask" => new_resource.netmask,
+      "dhcp_enable" => new_resource.dhcp_enable,
+      "dhcp_start" => new_resource.dhcp_start,
+      "dhcp_end" => new_resource.dhcp_end,
+      "dhcp_hosts" => new_resource.dhcp_hosts
+    )
+
+    notifies :run, "bash[virsh_net_create_#{new_resource.name}]", :immediately
+  end
+
+  bash "virsh_net_create_#{new_resource.name}" do
+    code <<-EOH
+      virsh net-create #{create_xml_path}
+    EOH
+
+    action :run
+    notifies :reload, "service[libvirt-daemon]"
+
+    not_if do
+      all_include? new_resource.name
+    end
+  end
+
+  new_resource.updated_by_last_action(true)
+end
+
+action :define do
+  template define_xml_path do
+    owner "root"
+    group "root"
+    mode 0640
+
+    cookbook "libvirt"
+    source "network.xml.erb"
+
+    variables(
+      "name" => new_resource.name,
+      "uuid" => new_resource.uuid,
+      "mac" => new_resource.mac,
+      "bridge" => new_resource.bridge,
+      "ip" => new_resource.ip,
+      "netmask" => new_resource.netmask,
+      "dhcp_enable" => new_resource.dhcp_enable,
+      "dhcp_start" => new_resource.dhcp_start,
+      "dhcp_end" => new_resource.dhcp_end,
+      "dhcp_hosts" => new_resource.dhcp_hosts
+    )
+
+    notifies :run, "bash[virsh_net_define_#{new_resource.name}]", :immediately
+  end
+
+  bash "virsh_net_define_#{new_resource.name}" do
+    code <<-EOH
+      virsh net-define #{define_xml_path}
+    EOH
+
+    action :run
+    notifies :reload, "service[libvirt-daemon]"
+
+    not_if do
+      all_include? new_resource.name
+    end
+  end
+
+  new_resource.updated_by_last_action(true)
+end
+
+action :undefine do
+  if inactive_include? new_resource.name
+    bash "virsh_net_undefine_#{new_resource.name}" do
+      code <<-EOH
+        virsh net-undefine #{new_resource.name}
+      EOH
+
+      action :run
+    end
+
+    new_resource.updated_by_last_action(true)
+  else
+    Chef::Log.debug "Can't undefine, network #{new_resource.name} is not in inactive list"
+  end
+end
+
+action :start do
+  if inactive_include? new_resource.name
+    bash "virsh_net_start_#{new_resource.name}" do
+      code <<-EOH
+        virsh net-start #{new_resource.name}
+      EOH
+
+      action :run
+    end
+
+    new_resource.updated_by_last_action(true)
+  else
+    Chef::Log.debug "Can't start, network #{new_resource.name} is not in inactive list"
+  end
+end
+
+action :destroy do
+  if active_include? new_resource.name
+    bash "virsh_net_destroy_#{new_resource.name}" do
+      code <<-EOH
+        virsh net-destroy #{new_resource.name}
+      EOH
+
+      action :run
+    end
+
+    new_resource.updated_by_last_action(true)
+  else
+    Chef::Log.debug "Can't destroy, network #{new_resource.name} is not in active list"
+  end
+end
+
+action :autoboot do
+  if noboot_include? new_resource.name
+    bash "virsh_net_autoboot_#{new_resource.name}" do
+      code <<-EOH
+        virsh net-autostart #{new_resource.name}
+      EOH
+
+      action :run
+    end
+
+    new_resource.updated_by_last_action(true)
+  else
+    Chef::Log.debug "Can't autoboot, network #{new_resource.name} is not in noboot list"
+  end
+end
+
+action :noboot do
+  if autoboot_include? new_resource.name
+    bash "virsh_net_noboot_#{new_resource.name}" do
+      code <<-EOH
+        virsh net-autostart #{new_resource.name} --disable
+      EOH
+
+      action :run
+    end
+
+    new_resource.updated_by_last_action(true)
+  else
+    Chef::Log.debug "Can't noboot, network #{new_resource.name} is not in autoboot list"
+  end
+end
+
+#protected
+action_class do
+
+def create_xml_path
+  @create_xml_path ||= begin
+    ::File.join(
+      Chef::Config[:file_cache_path],
+      "virsh_net_create_#{new_resource.name}.xml"
+    )
+  end
+end
+
+def define_xml_path
+  @create_xml_path ||= begin
+    ::File.join(
+      Chef::Config[:file_cache_path],
+      "virsh_net_define_#{new_resource.name}.xml"
+    )
+  end
+end
+
+def all_include?(name)
+  listing_include? "--all", name
+end
+
+def autoboot_include?(name)
+  listing_include? "--autostart", name
+end
+
+def noboot_include?(name)
+  listing_include? "--no-autostart", name
+end
+
+def inactive_include?(name)
+  listing_include? "--inactive", name
+end
+
+def active_include?(name)
+  listing_include? "", name
+end
+
+def listing_include?(flag, name)
+  `virsh net-list #{flag} | grep #{name} | wc -l`.strip != "0"
+end
+end	# action_class
