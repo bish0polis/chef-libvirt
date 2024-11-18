@@ -21,17 +21,15 @@
 provides	:network
 
 property :name, String, name_property: true
-property :uuid, String, :default => nil
-property :mac, String, :default => nil
-property :bridge, String, :default => "virbr1"
-property :ip, String, :default => "192.168.0.1"
-property :netmask, String, :default => "255.255.0.0"
-property :dhcp_enable, [TrueClass, FalseClass], :default => false
-property :dhcp_start, String, :default => nil
-property :dhcp_end, String, :default => nil
-property :dhcp_hosts, Array, :default => []
-
-#default_action :create
+property :uuid, String, default: nil
+property :mac, String, default: nil
+property :bridge, String, default: "virbr1"
+property :ip, String, default: "192.168.0.1"
+property :netmask, String, default: "255.255.0.0"
+property :dhcp_enable, [TrueClass, FalseClass], default: false
+property :dhcp_start, String, default: nil
+property :dhcp_end, String, default: nil
+property :dhcp_hosts, Array, default: []
 
 action :create do
   template create_xml_path do
