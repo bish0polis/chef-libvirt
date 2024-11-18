@@ -51,10 +51,10 @@ action :create do
   end
 
   bash "virsh_node_create_#{new_resource.name}" do
-    code <<-EOH
-      virsh create #{create_xml_path}
-    EOH
-
+    #code <<-EOH
+    #  virsh create #{create_xml_path}
+    #EOH
+    command "virsh create #{create_xml_path}"
     action :run
     notifies :reload, "service[libvirt-daemon]"
 
